@@ -1,0 +1,16 @@
+[Unit]
+Description=mqtt-block-table for %I
+After=syslog.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+ExecStart=/usr/local/sbin/mqtt-block-table.py "%i"
+StandardOutput=null
+StandardError=journal
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
