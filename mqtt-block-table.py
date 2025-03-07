@@ -3,7 +3,6 @@
 import paho.mqtt.client as mqtt
 import subprocess
 import sys
-import time
 
 MQTT_SERVER = "mqtt"
 TOPIC = "MyFirewall"
