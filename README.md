@@ -6,9 +6,9 @@ Part of my home automation requires the ability to enable / disable Internet acc
 *Count yourself lucky that I didn't call it __MQTT BLOCKCHAIN__* 😂
 
 ### How It Works
-The script listens on a topic `/firewall/CHAIN/block` for a message of either **0** (to unblock) or **1** (to block).
+The script listens on a topic `firewall/CHAIN/block` for a message of either **0** (to unblock) or **1** (to block).
 
-It reports on a topic of `/firewall/CHAIN/blocked` with either a message of **True** (for blocked) or **False** (for unblocked).
+It reports on a topic of `firewall/CHAIN/blocked` with either a message of **True** (for blocked) or **False** (for unblocked).
 
 It reports with "Retain" set to True, so you can always tell the last status it provided upon subscribing, with the caveat that this might be wrong if the script isn't running and the state has changed out-of-band.
 
@@ -43,6 +43,27 @@ Ergo, the intended implmentation is to create an empty chain for the purpose of 
  
 Now you can "turn on or off" blocking for that rule with the appropriate MQTT messages!  Use `journalctl -u mqtt-block-table@CHAIN` to troubleshoot, as per usual systemd operation.. and check the tables with the requisite `iptables -L` / `ip6tables -L` commands.
 
+#### Example use using the **mosquitto-clients** package
+Let's say you set the topic to `firewall` and ran it on a iptables chain named `KIDS`, and your MQTT host is named `mqtt`:
+In one terminal, you can subscribe to the topic with the mosquitto_sub command.  It will immediately show the last "retained" message from the script, indicating the current state:
+```
+$ mosquitto_sub -h mqtt -v -t firewall/\#
+firewall/KIDS/blocked False
+```
+
+In another terminal you can toggle the block rule by sending a message with the mosquitto_pub command:  
+```
+$ mosquitto_pub -h mqtt -t firewall/KIDS/block -m 1
+$
+```
+
+The first terminal will now show the update (and your message, since you subscribed to the root of the topic):
+```
+$ mosquitto_sub -h mqtt -v -t firewall/\#
+firewall/KIDS/blocked False
+firewall/KIDS/block 1
+firewall/KIDS/blocked True
+```
 
 ## DISCLAIMER
 As designed this script runs AS ROOT, on your firewall, and listens for MQTT messages from outside and takes actions on them.  It is your responsibility to ensure that this is appropriate for your network, use case, and security needs.  It is also your responsibility to ensure that this script and its associated dependencies are appropriate for your security posture.  No claims, warranties, or assertions of suitability are made by me, the author.  I'm merely providing this as an example and for convenience in case you find it useful.  As with all free & open source software, Your use is at your own risk.
